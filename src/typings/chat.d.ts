@@ -3,6 +3,7 @@ declare namespace Chat {
 	interface Chat {
 		dateTime: string
 		text: string
+		id?: number,
 		inversion?: boolean
 		error?: boolean
 		loading?: boolean
@@ -39,6 +40,7 @@ declare namespace Chat {
 			usage: { completion_tokens: number; prompt_tokens: number; total_tokens: number }
 		}
 		id: string
+		uid: string
 		parentMessageId: string
 		role: string
 		text: string

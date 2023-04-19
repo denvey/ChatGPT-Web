@@ -14,8 +14,10 @@ import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess } from '@/api'
+import { fetchChatAPIProcess, findMessage } from '@/api'
 import { t } from '@/locales'
+import Prompts from '../../assets/prompts.json'
+
 
 let controller = new AbortController()
 
@@ -34,17 +36,38 @@ const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
 const { scrollRef, scrollToBottom, scrollToBottomIfAtBottom } = useScroll()
 const { usingContext, toggleUsingContext } = useUsingContext()
 
-const { uuid } = route.params as { uuid: string }
+const { uuid: uuidString } = route.params as { uuid: string }
+const { wx, uid, promptId } = route.query as any
 
-const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
+const uuid = Number(uuidString);
+
+
+chatStore.setActive(uuid)
+
+const dataSources = computed(() => chatStore.getChatByUuid(uuid))
 const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !item.error)))
 
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
 const inputRef = ref<Ref | null>(null)
 
+if (!chatStore.isUuid(uuid)) {
+  
+  chatStore.addHistory({ title: '新会话', uuid, isEdit: false }, [], false)  
+}
+
 // 添加PromptStore
-const promptStore = usePromptStore()
+let promptStore: any = usePromptStore();
+
+if (promptStore) {
+  promptStore.updatePromptList(Prompts.data);
+}
+
+if (promptId) {
+  // const promptValue = promptStore.getPromptById(Number(promptId));
+  prompt.value = promptStore.getPromptById(Number(promptId))?.value ?? null;
+  handleSubmit();
+}
 
 // 使用storeToRefs，保证store修改后，联想部分能够重新渲染
 const { promptList: promptTemplate } = storeToRefs<any>(promptStore)
@@ -112,6 +135,8 @@ async function onConversation() {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
         options,
+        cid: uuid,
+        uid,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -243,6 +268,8 @@ async function onRegenerate(index: number) {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
         options,
+        cid: uuid,
+        uid,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -458,6 +485,34 @@ onMounted(() => {
   scrollToBottom()
   if (inputRef.value && !isMobile.value)
     inputRef.value?.focus()
+
+  findMessage({
+    sort: 'createdAt',
+    filter: {
+      "$and": [
+        {
+            "cid.$eq": uuid
+        },
+        {
+            "userId.$eq": uid
+        }
+      ]
+    },
+    pageSize: 100,
+  }).then(res => {
+    res.data.data.forEach((item: any, index: number) => {
+      const data = {
+        dateTime: item.createdAt,
+        text: item.text,
+        inversion: item.fromUid ? true : false,
+        error: false,
+        loading: false,
+        conversationOptions: { conversationId: item.cid, parentMessageId: item.parentMessageId },
+      }
+      updateChatSome(uuid, index, data);
+    })
+    console.log(res);
+  })
 })
 
 onUnmounted(() => {
@@ -469,7 +524,7 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col w-full h-full">
     <HeaderComponent
-      v-if="isMobile"
+      v-if="isMobile && !wx"
       :using-context="usingContext"
       @export="handleExport"
       @toggle-using-context="toggleUsingContext"
@@ -516,7 +571,7 @@ onUnmounted(() => {
     <footer :class="footerClass">
       <div class="w-full max-w-screen-xl m-auto">
         <div class="flex items-center justify-between space-x-2">
-          <HoverButton @click="handleClear">
+          <HoverButton @click="handleClear" v-if="!wx">
             <span class="text-xl text-[#4f555e] dark:text-white">
               <SvgIcon icon="ri:delete-bin-line" />
             </span>
@@ -526,7 +581,7 @@ onUnmounted(() => {
               <SvgIcon icon="ri:download-2-line" />
             </span>
           </HoverButton>
-          <HoverButton v-if="!isMobile" @click="toggleUsingContext">
+          <HoverButton v-if="!isMobile || wx" @click="toggleUsingContext">
             <span class="text-xl" :class="{ 'text-[#4b9e5f]': usingContext, 'text-[#a8071a]': !usingContext }">
               <SvgIcon icon="ri:chat-history-line" />
             </span>

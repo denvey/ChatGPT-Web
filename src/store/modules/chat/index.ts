@@ -20,6 +20,12 @@ export const useChatStore = defineStore('chat-store', {
         return state.chat.find(item => item.uuid === state.active)?.data ?? []
       }
     },
+    isUuid(state: Chat.ChatState) {
+      return (uuid?: number) => {
+        if (uuid)
+          return state.chat.find(item => item.uuid === uuid) ?? null;
+      }
+    }
   },
 
   actions: {
@@ -28,10 +34,11 @@ export const useChatStore = defineStore('chat-store', {
       this.recordState()
     },
 
-    addHistory(history: Chat.History, chatData: Chat.Chat[] = []) {
+    addHistory(history: Chat.History, chatData: Chat.Chat[] = [], reload: Boolean = true) {
       this.history.unshift(history)
       this.chat.unshift({ uuid: history.uuid, data: chatData })
       this.active = history.uuid
+      
       this.reloadRoute(history.uuid)
     },
 
@@ -103,7 +110,7 @@ export const useChatStore = defineStore('chat-store', {
         }
         else {
           this.chat[0].data.push(chat)
-          if (this.history[0].title === 'New Chat')
+          if (this.history[0].title === '新会话')
             this.history[0].title = chat.text
           this.recordState()
         }
@@ -112,7 +119,7 @@ export const useChatStore = defineStore('chat-store', {
       const index = this.chat.findIndex(item => item.uuid === uuid)
       if (index !== -1) {
         this.chat[index].data.push(chat)
-        if (this.history[index].title === 'New Chat')
+        if (this.history[index].title === '新会话')
           this.history[index].title = chat.text
         this.recordState()
       }
@@ -146,6 +153,7 @@ export const useChatStore = defineStore('chat-store', {
       const chatIndex = this.chat.findIndex(item => item.uuid === uuid)
       if (chatIndex !== -1) {
         this.chat[chatIndex].data[index] = { ...this.chat[chatIndex].data[index], ...chat }
+        // this.chat[chatIndex].data[index] = chat as any
         this.recordState()
       }
     },
@@ -184,7 +192,7 @@ export const useChatStore = defineStore('chat-store', {
 
     async reloadRoute(uuid?: number) {
       this.recordState()
-      await router.push({ name: 'Chat', params: { uuid } })
+      await router.push({ name: 'Chat', params: { uuid }, query: router.currentRoute.value.query })
     },
 
     recordState() {

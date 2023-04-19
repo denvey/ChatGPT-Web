@@ -1,4 +1,5 @@
 import type { AxiosProgressEvent, GenericAbortSignal } from 'axios'
+import axios from 'axios';
 import { post } from '@/utils/request'
 import { useAuthStore, useSettingStore } from '@/store'
 
@@ -22,7 +23,9 @@ export function fetchChatConfig<T = any>() {
 
 export function fetchChatAPIProcess<T = any>(
   params: {
-    prompt: string
+    prompt: string,
+		cid?: number,
+    uid?: number,
     options?: { conversationId?: string; parentMessageId?: string }
     signal?: GenericAbortSignal
     onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void },
@@ -33,6 +36,8 @@ export function fetchChatAPIProcess<T = any>(
   let data: Record<string, any> = {
     prompt: params.prompt,
     options: params.options,
+    cid: params.cid,
+    uid: params.uid,
   }
 
   if (authStore.isChatGPTAPI) {
@@ -62,5 +67,13 @@ export function fetchVerify<T>(token: string) {
   return post<T>({
     url: '/verify',
     data: { token },
+  })
+}
+
+
+export function findMessage (data: any) {
+  return axios({
+    url: `https://admin.qqshsh.com/api/message`,
+    params: data
   })
 }
