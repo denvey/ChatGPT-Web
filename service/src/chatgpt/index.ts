@@ -9,6 +9,7 @@ import { sendResponse } from '../utils'
 import { isNotEmptyString } from '../utils/is'
 import type { ApiModel, ChatContext, ChatGPTUnofficialProxyAPIOptions, ModelConfig } from '../types'
 import type { RequestOptions, SetProxyOptions, UsageResponse } from './types'
+import { updateChats, addMessage, userInfo } from 'src/utils/user'
 
 const { HttpsProxyAgent } = httpsProxyAgent
 
@@ -91,10 +92,9 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 })()
 
 async function chatReplyProcess(options: RequestOptions) {
-  const { message, lastContext, process, systemMessage, temperature, top_p } = options
+  const { message, lastContext, process, systemMessage, temperature, top_p, cid, uid } = options
   try {
     let options: SendMessageOptions = { timeoutMs }
-
     if (apiModel === 'ChatGPTAPI') {
       if (isNotEmptyString(systemMessage))
         options.systemMessage = systemMessage
@@ -108,6 +108,8 @@ async function chatReplyProcess(options: RequestOptions) {
         options = { ...lastContext }
     }
 
+    
+
     const response = await api.sendMessage(message, {
       ...options,
       onProgress: (partialResponse) => {
@@ -115,6 +117,41 @@ async function chatReplyProcess(options: RequestOptions) {
       },
     })
 
+    // 更新 会话id 内容
+    if (cid) {
+      updateChats({
+        id: cid,
+        title: message,
+        content: response.text.slice(0, 30).replace(/\r|\n/g,"")
+      })
+    }
+  
+    // 保存问题
+    // 等待先把问题写成功后再答案保证顺序
+    await addMessage({
+      inversion: lastContext != null ? 1: 0,
+      fromUid: uid,
+      text: message,
+      status: 1,
+      userId: uid,
+      chat: {
+        id: cid,
+      }
+    })
+    // 保存答案
+    addMessage({
+      inversion: lastContext != null ? 1: 0,
+      text: response.text,
+      status: 1,
+      userId: uid,
+      toUid: uid,
+      chat: {
+        id: cid,
+      },
+      parentMessageId: response.parentMessageId,
+      role: response.role
+    })
+    
     return sendResponse({ type: 'Success', data: response })
   }
   catch (error: any) {

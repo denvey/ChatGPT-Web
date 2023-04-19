@@ -8,6 +8,10 @@ export interface RequestOptions {
   systemMessage?: string
   temperature?: number
   top_p?: number
+  // 会话ID
+  cid?: number
+  // 用户id
+  uid?: number
 }
 
 export interface SetProxyOptions {
