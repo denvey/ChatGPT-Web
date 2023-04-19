@@ -44,8 +44,8 @@ const uuid = Number(uuidString);
 
 chatStore.setActive(uuid)
 
-const dataSources = computed(() => chatStore.getChatByUuid(uuid))
-const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !item.error)))
+const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
+const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !!item.conversationOptions)))
 
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
