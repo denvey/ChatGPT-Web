@@ -73,16 +73,17 @@ export function updateIntegral (data: {
  * @returns 
  */
 export async function proxyChat (req, res) {
-  const user: any = await userInfo(req.headers['authori-zation']);
+  const user: any = await userInfo(req.headers['authori-zation'] || req.headers['authorization']);
   if (user.status === 110002) {
     return res.json(user);
   }
+
   try {
     const data = await axios({
       url: `https://admin.qqshsh.com${req.url}`, 
       method: req.method,
       params: {
-        ...req.query,
+        // ...req.query,
         'filter[userId]': user.data.uid
       },
       data: {
@@ -90,11 +91,7 @@ export async function proxyChat (req, res) {
         userId: user.data.uid
       }
     });
-    return res.json({
-      status: 200,
-      msg: 'success',
-      data: data.data
-    })
+    return res.json(data.data)
   } catch (err) {
     res.json(err.response?.data);
   }

@@ -25,7 +25,21 @@ app.all('*', (_, res, next) => {
 router.post('/chat-process', [auth, limiter], async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
   let isError = false;
+  const authoriZation = req.headers['authorization'];
+  const user: any = await userInfo(authoriZation);
+  
   try {
+    // if (user.status === 110002) {
+    //   return res.json(user);
+    // }
+    if (user.data?.is_money_level <=0 && user.data?.integral < 0) { 
+      throw {
+        data: null,
+        message: '会员已过期或积分已使用完~，请充值或赚取积分再使用',
+        type: 1,
+        status:'Fail'
+      }
+    }
     const { prompt, options = {}, systemMessage, temperature, top_p, cid, uid } = req.body as RequestProps
     let firstChunk = true
     await chatReplyProcess({
@@ -44,14 +58,16 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   }
   catch (error) {
     isError = true;
-    error.message = '本次不扣除积分\n' + error.message
+    if (error.type !==1 && user.data?.is_money_level <= 0) {
+      error.message = '本次不扣除积分\n' + error.message
+    }
     res.write(JSON.stringify(error))
   }
   finally {
     if (!isError) {
       // const user: any = await userInfo(req.headers['authori-zation']);
-      const authoriZation = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwd2QiOiJkNDFkOGNkOThmMDBiMjA0ZTk4MDA5OThlY2Y4NDI3ZSIsImlzcyI6ImxvY2FsaG9zdDo4MDgzIiwiYXVkIjoibG9jYWxob3N0OjgwODMiLCJpYXQiOjE2ODEzNzgzNzgsIm5iZiI6MTY4MTM3ODM3OCwiZXhwIjoxNjgzOTcwMzc4LCJqdGkiOnsiaWQiOjcsInR5cGUiOiJhcGkifX0.Ti9bmbwHWf8GnUsEoUju_YXk8IY-wt5tpYW9uQnhEzM';
-      const user: any = await userInfo(authoriZation);
+      // const authoriZation = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwd2QiOiJkNDFkOGNkOThmMDBiMjA0ZTk4MDA5OThlY2Y4NDI3ZSIsImlzcyI6ImxvY2FsaG9zdDo4MDgzIiwiYXVkIjoibG9jYWxob3N0OjgwODMiLCJpYXQiOjE2ODEzNzgzNzgsIm5iZiI6MTY4MTM3ODM3OCwiZXhwIjoxNjgzOTcwMzc4LCJqdGkiOnsiaWQiOjcsInR5cGUiOiJhcGkifX0.Ti9bmbwHWf8GnUsEoUju_YXk8IY-wt5tpYW9uQnhEzM';
+      
       if (user.data?.is_money_level == 1) {
         updateIntegral({
           "integration_status": 2,
@@ -78,9 +94,10 @@ router.post('/config', auth, async (req, res) => {
 
 router.post('/session', async (req, res) => {
   try {
-    const AUTH_SECRET_KEY = process.env.AUTH_SECRET_KEY
-    const hasAuth = isNotEmptyString(AUTH_SECRET_KEY)
-    res.send({ status: 'Success', message: '', data: { auth: hasAuth, model: currentModel() } })
+    // const AUTH_SECRET_KEY = process.env.AUTH_SECRET_KEY
+    // const hasAuth = isNotEmptyString(AUTH_SECRET_KEY)
+    const result: any = await userInfo(req.headers['authori-zation'] || req.headers['authorization']);
+    res.send({ status: 'Success', message: '', data: { auth: true, model: currentModel(),  userInfo: result.data } })
   }
   catch (error) {
     res.send({ status: 'Fail', message: error.message, data: null })

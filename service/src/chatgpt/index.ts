@@ -121,7 +121,7 @@ async function chatReplyProcess(options: RequestOptions) {
     // 保存问题
     // 等待先把问题写成功后再答案保证顺序
     await addMessage({
-      inversion: lastContext != null ? 1: 0,
+      inversion: 1,
       fromUid: uid,
       text: message,
       status: 1,
