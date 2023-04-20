@@ -1,6 +1,5 @@
 import type { AxiosProgressEvent, GenericAbortSignal } from 'axios'
-import axios from 'axios';
-import { post } from '@/utils/request'
+import { post, axios } from '@/utils/request'
 import { useAuthStore, useSettingStore } from '@/store'
 
 export function fetchChatAPI<T = any>(
@@ -73,7 +72,20 @@ export function fetchVerify<T>(token: string) {
 
 export function findMessage (data: any) {
   return axios({
-    url: `https://admin.qqshsh.com/api/message`,
+    url: `http://localhost:3002/proxy/api/message`,
     params: data
+  })
+}
+
+export function findChats() {
+	// return axios(`http://localhost:3002/proxy/api/chats:list?sort=-updatedAt`);
+	return axios(`http://localhost:3002/proxy/api/chats:list?sort=-updatedAt`);
+}
+
+export function addChat(data: any) {
+  return axios({
+    url: `http://localhost:3002/proxy/api/chats:create`,
+    method: 'POST',
+    data
   })
 }

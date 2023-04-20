@@ -81,4 +81,8 @@ export function post<T = any>(
   })
 }
 
+export {
+  request as axios
+}
+
 export default post

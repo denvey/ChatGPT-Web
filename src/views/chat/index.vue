@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { NAutoComplete, NButton, NInput, useDialog, useMessage } from 'naive-ui'
 import html2canvas from 'html2canvas'
+import dayjs from 'dayjs'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
 import { useChat } from './hooks/useChat'
@@ -14,8 +15,9 @@ import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess, findMessage } from '@/api'
+import { fetchChatAPIProcess, findMessage, findChats } from '@/api'
 import { t } from '@/locales'
+
 import Prompts from '../../assets/prompts.json'
 
 
@@ -41,9 +43,6 @@ const { wx, uid, promptId } = route.query as any
 
 const uuid = Number(uuidString);
 
-
-chatStore.setActive(uuid)
-
 const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
 const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !!item.conversationOptions)))
 
@@ -52,8 +51,7 @@ const loading = ref<boolean>(false)
 const inputRef = ref<Ref | null>(null)
 
 if (!chatStore.isUuid(uuid)) {
-  
-  chatStore.addHistory({ title: '新会话', uuid, isEdit: false }, [], false)  
+  // chatStore.addHistory({ title: '新会话', uuid, isEdit: false }, [], false)  
 }
 
 // 添加PromptStore
@@ -481,6 +479,8 @@ const footerClass = computed(() => {
   return classes
 })
 
+
+
 onMounted(() => {
   scrollToBottom()
   if (inputRef.value && !isMobile.value)
@@ -500,18 +500,35 @@ onMounted(() => {
     },
     pageSize: 100,
   }).then(res => {
-    res.data.data.forEach((item: any, index: number) => {
-      const data = {
-        dateTime: item.createdAt,
+    const data = res.data.data.map((item: any, index: number) => {
+      return {
+        id: item.id,
+        dateTime: dayjs(item.createdAt).format('YYYY/MM/DD HH:mm:ss'),
         text: item.text,
         inversion: item.fromUid ? true : false,
         error: false,
         loading: false,
         conversationOptions: { conversationId: item.cid, parentMessageId: item.parentMessageId },
       }
-      updateChatSome(uuid, index, data);
     })
-    console.log(res);
+    chatStore.syncChat(uuid, data)
+  })
+
+  findChats().then(res => {
+    const data = res.data.data.map((item: any) => {
+      return {
+        uuid: item.id,
+        isEdit: false,
+        title: item.title,
+      }
+    })
+    if (data.find((item: any) => item.uuid === uuid)) {
+      chatStore.setActive(uuid)
+    } else if (data[0].uuid) {
+      chatStore.setActive(data[0].uuid)
+    }
+    
+    chatStore.syncHistory(data)
   })
 })
 
