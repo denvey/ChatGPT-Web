@@ -1,5 +1,5 @@
 import express from 'express'
-import prismaClint from '@prisma/client';
+// import prismaClint from '@prisma/client';
 import type { RequestProps } from './types'
 import type { ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
@@ -8,7 +8,7 @@ import { limiter } from './middleware/limiter'
 import { isNotEmptyString } from './utils/is'
 import { userInfo, updateIntegral, proxyChat } from './utils/user'
 
-const prisma = new prismaClint.PrismaClient()
+// const prisma = new prismaClint.PrismaClient()
 const app = express()
 const router = express.Router()
 

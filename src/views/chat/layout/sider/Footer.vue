@@ -50,7 +50,7 @@ function openDrawer() {
 
     <NDrawer v-model:show="show" :width="327" placement="left">
       <NDrawerContent title="个人中心" closable :body-content-style="{ padding: 0 }">
-          <iframe id="user-info" class="iframe-wrap" src="http://localhost:8083/pages/user/index"></iframe>
+          <iframe id="user-info" class="iframe-wrap" src="https://xjh.qqshsh.com/pages/user/index"></iframe>
           <div class="operation-wrap">
             <span @click="() => handleGo(-1)">
               <SvgIcon icon="material-symbols:arrow-back" />
