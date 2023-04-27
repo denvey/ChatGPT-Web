@@ -29,9 +29,14 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   const user: any = await userInfo(authoriZation);
   
   try {
-    // if (user.status === 110002) {
-    //   return res.json(user);
-    // }
+    if (user.status === 110002) {
+      throw {
+        data: null,
+        message: '请登录使用',
+        type: 1,
+        status:'Fail'
+      }
+    }
     if (user.data?.is_money_level <=0 && user.data?.integral < 0) { 
       throw {
         data: null,
@@ -40,12 +45,12 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
         status:'Fail'
       }
     }
-    const { prompt, options = {}, systemMessage, temperature, top_p, cid, uid } = req.body as RequestProps
+    const { prompt, options = {}, systemMessage, temperature, top_p, cid } = req.body as RequestProps
     let firstChunk = true
     await chatReplyProcess({
       message: prompt,
       cid,
-      uid,
+      uid: user.data.uid,
       lastContext: options,
       process: (chat: ChatMessage) => {
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
@@ -57,7 +62,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
     })
   }
   catch (error) {
-    isError = true;
+    isError = true
     if (error.type !==1 && user.data?.is_money_level <= 0) {
       error.message = '本次不扣除积分\n' + error.message
     }
@@ -65,16 +70,13 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   }
   finally {
     if (!isError) {
-      // const user: any = await userInfo(req.headers['authori-zation']);
-      // const authoriZation = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwd2QiOiJkNDFkOGNkOThmMDBiMjA0ZTk4MDA5OThlY2Y4NDI3ZSIsImlzcyI6ImxvY2FsaG9zdDo4MDgzIiwiYXVkIjoibG9jYWxob3N0OjgwODMiLCJpYXQiOjE2ODEzNzgzNzgsIm5iZiI6MTY4MTM3ODM3OCwiZXhwIjoxNjgzOTcwMzc4LCJqdGkiOnsiaWQiOjcsInR5cGUiOiJhcGkifX0.Ti9bmbwHWf8GnUsEoUju_YXk8IY-wt5tpYW9uQnhEzM';
-      
-      if (user.data?.is_money_level == 1) {
+      if (user.data?.is_money_level <= 0) {
         updateIntegral({
           "integration_status": 2,
           "integration": 10,
           "is_other": true
         }, authoriZation).then(res => {
-          console.log(res);
+          // console.log(res);
         })
       }
     }
@@ -97,7 +99,7 @@ router.post('/session', async (req, res) => {
     // const AUTH_SECRET_KEY = process.env.AUTH_SECRET_KEY
     // const hasAuth = isNotEmptyString(AUTH_SECRET_KEY)
     const result: any = await userInfo(req.headers['authori-zation'] || req.headers['authorization']);
-    res.send({ status: 'Success', message: '', data: { auth: true, model: currentModel(),  userInfo: result.data } })
+    res.send({ status: 'Success', message: '', data: { auth: false, model: currentModel(),  userInfo: result.data } })
   }
   catch (error) {
     res.send({ status: 'Fail', message: error.message, data: null })
@@ -169,10 +171,9 @@ router.post('/verify', async (req, res) => {
 // })
 
 
-
+app.use('/api/proxy', proxyChat)
 app.use('', router)
 app.use('/api', router)
-app.use('/proxy', proxyChat)
 
 app.set('trust proxy', 1)
 
