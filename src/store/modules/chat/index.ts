@@ -142,9 +142,13 @@ export const useChatStore = defineStore('chat-store', {
 
       const index = this.chat.findIndex(item => item.uuid === uuid)
       if (index !== -1) {
-        this.chat[index].data.push(chat)
-        if (this.history[index].title === '新会话')
-          this.history[index].title = chat.text
+        this.chat[index].data.push(chat);
+        const historyIndex = this.history.findIndex(item => item.uuid === uuid);
+        if (history) {
+          if (this.history[historyIndex]?.title === '新会话')
+            this.history[index].title = chat.text
+        }
+        
         this.recordState()
       }
     },
