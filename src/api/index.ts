@@ -69,22 +69,20 @@ export function fetchVerify<T>(token: string) {
   })
 }
 
-
 export function findMessage (data: any) {
   return axios({
-    url: `http://localhost:3002/proxy/api/message`,
+    url: `/proxy/message`,
     params: data
   })
 }
 
 export function findChats() {
-	// return axios(`http://localhost:3002/proxy/api/chats:list?sort=-updatedAt`);
-	return axios(`http://localhost:3002/proxy/api/chats:list?sort=-updatedAt`);
+	return axios(`/proxy/chats:list?sort=-updatedAt`);
 }
 
 export function addChat(data: any) {
   return axios({
-    url: `http://localhost:3002/proxy/api/chats:create`,
+    url: `/proxy/chats:create`,
     method: 'POST',
     data
   })

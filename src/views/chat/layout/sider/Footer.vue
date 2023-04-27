@@ -10,13 +10,13 @@ const show = ref(false)
 const loading = ref(false)
 
 const userStore = useUserStore()
+
 function handleGo(num: number) {
   window.history.go(num)
 }
 
 const userInfo: any = computed(() => userStore.userInfo)
-
-if (!userInfo.name) {
+if (!userInfo.value.name) {
   show.value = true
 }
 
@@ -50,7 +50,7 @@ function openDrawer() {
 
     <NDrawer v-model:show="show" :width="327" placement="left">
       <NDrawerContent title="个人中心" closable :body-content-style="{ padding: 0 }">
-          <iframe id="user-info" class="iframe-wrap" src="https://xjh.qqshsh.com/pages/user/index"></iframe>
+          <iframe id="user-info" class="iframe-wrap" src="https://aixjh.qqshsh.com/pages/user/index"></iframe>
           <div class="operation-wrap">
             <span @click="() => handleGo(-1)">
               <SvgIcon icon="material-symbols:arrow-back" />

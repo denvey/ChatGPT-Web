@@ -1,11 +1,12 @@
 <script setup lang='ts'>
-import { computed } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 import { NLayout, NLayoutContent } from 'naive-ui'
 import { useRoute, useRouter } from 'vue-router'
 import Sider from './sider/index.vue'
 import Permission from './Permission.vue'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useAppStore, useAuthStore, useChatStore } from '@/store'
+import { findChats } from '@/api'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -20,6 +21,9 @@ const { isMobile } = useBasicLayout()
 const collapsed = computed(() => appStore.siderCollapsed)
 
 const needPermission = computed(() => !!authStore.session?.auth && !authStore.token)
+const { uuid: uuidString } = route.params as { uuid: string }
+
+const uuid = Number(uuidString);
 
 const getMobileClass = computed(() => {
   if (isMobile.value)
@@ -32,6 +36,29 @@ const getContainerClass = computed(() => {
     'h-full',
     { 'pl-[260px]': !isMobile.value && !collapsed.value },
   ]
+})
+
+onBeforeMount(() => {
+  findChats().then(res => {
+    if (res.data.data?.length <=0 ) {
+      chatStore.syncHistory([]);
+      return;
+    }
+    
+    const data = res.data.data.map((item: any) => {
+      return {
+        uuid: item.id,
+        isEdit: false,
+        title: item.title,
+      }
+    })
+    if (data.find((item: any) => item.uuid === uuid)) {
+      chatStore.setActive(uuid)
+    } else if (data[0]?.uuid) {
+      chatStore.setActive(data[0].uuid)
+    }
+    chatStore.syncHistory(data)
+  })
 })
 </script>
 

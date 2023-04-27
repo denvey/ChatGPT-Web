@@ -15,7 +15,7 @@ import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess, findMessage, findChats } from '@/api'
+import { fetchChatAPIProcess, findMessage } from '@/api'
 import { t } from '@/locales'
 
 import Prompts from '../../assets/prompts.json'
@@ -479,8 +479,6 @@ const footerClass = computed(() => {
   return classes
 })
 
-
-
 onMounted(() => {
   scrollToBottom()
   if (inputRef.value && !isMobile.value)
@@ -500,6 +498,8 @@ onMounted(() => {
     },
     pageSize: 100,
   }).then(res => {
+    if (res.data.data?.length <= 0) {
+    }
     const data = res.data.data.map((item: any, index: number) => {
       return {
         id: item.id,
@@ -514,22 +514,7 @@ onMounted(() => {
     chatStore.syncChat(uuid, data)
   })
 
-  findChats().then(res => {
-    const data = res.data.data.map((item: any) => {
-      return {
-        uuid: item.id,
-        isEdit: false,
-        title: item.title,
-      }
-    })
-    if (data.find((item: any) => item.uuid === uuid)) {
-      chatStore.setActive(uuid)
-    } else if (data[0].uuid) {
-      chatStore.setActive(data[0].uuid)
-    }
-    
-    chatStore.syncHistory(data)
-  })
+  
 })
 
 onUnmounted(() => {
