@@ -91,7 +91,11 @@ export async function proxyChat (req, res) {
         userId: user.data.uid
       }
     });
-    return res.json(data.data)
+    return res.json({
+      status: 200,
+      msg:'',
+      ...data.data
+    });
   } catch (err) {
     res.json(err.response?.data);
   }

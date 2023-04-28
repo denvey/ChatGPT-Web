@@ -146,7 +146,7 @@ export const useChatStore = defineStore('chat-store', {
         const historyIndex = this.history.findIndex(item => item.uuid === uuid);
         if (history) {
           if (this.history[historyIndex]?.title === '新会话')
-            this.history[index].title = chat.text
+            this.history[historyIndex].title = chat.text
         }
         
         this.recordState()

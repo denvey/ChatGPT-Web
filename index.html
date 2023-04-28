@@ -7,7 +7,7 @@
 	<link rel="apple-touch-icon" href="/favicon.ico">
 	<meta name="viewport"
 		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
-	<title>ChatGPT Web</title>
+	<title>AI 小聚合</title>
 </head>
 
 <body class="dark:bg-black">
@@ -78,6 +78,19 @@
 		</div>
 	</div>
 	<script type="module" src="/src/main.ts"></script>
+	<script type="text/javascript">
+		window.isPC = true;
+		
+		window.onload = function(){
+			/* 监听电脑浏览器窗口尺寸改变 */
+			window.onresize = function(){
+				/* 窗口宽度 小于或等于420px 时，跳转回H5页面 */
+				if(window.innerWidth <= 420){
+					window.location.pathname = '/';
+				}
+			}
+		}
+	</script>
 </body>
 
 </html>
