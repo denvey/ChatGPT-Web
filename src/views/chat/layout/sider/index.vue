@@ -13,11 +13,14 @@ const chatStore = useChatStore()
 
 const { isMobile } = useBasicLayout()
 const show = ref(false)
+const submitLoading = ref(false)
 
 const collapsed = computed(() => appStore.siderCollapsed)
 
-function handleAdd() {
-  chatStore.addHistory({ title: '新会话', uuid: Date.now(), isEdit: false })
+async function handleAdd() {
+  submitLoading.value = true;
+  await chatStore.addHistory({ title: '新会话', uuid: Date.now(), isEdit: false })
+  submitLoading.value = false;
   if (isMobile.value)
     appStore.setSiderCollapsed(true)
 }
@@ -72,7 +75,7 @@ watch(
     <div class="flex flex-col h-full" :style="mobileSafeArea">
       <main class="flex flex-col flex-1 min-h-0">
         <div class="p-4">
-          <NButton dashed block @click="handleAdd">
+          <NButton dashed block @click="handleAdd" :loading="submitLoading">
             {{ $t('chat.newChatButton') }}
           </NButton>
         </div>

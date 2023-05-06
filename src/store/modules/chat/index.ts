@@ -35,15 +35,14 @@ export const useChatStore = defineStore('chat-store', {
       this.recordState()
     },
 
-    addHistory(history: Chat.History, chatData: Chat.Chat[] = [], reload: Boolean = true) {
-      addChat(history).then(res => {
-        history.uuid = res.data.data.id;
-        this.history.unshift(history)
-        this.chat.unshift({ uuid: history.uuid, data: chatData })
-        this.active = history.uuid
-        
-        this.reloadRoute(history.uuid)
-      })
+    async addHistory(history: Chat.History, chatData: Chat.Chat[] = [], reload: Boolean = true) {
+      const res = await addChat(history);
+      history.uuid = res.data.data.id;
+      this.history.unshift(history)
+      this.chat.unshift({ uuid: history.uuid, data: chatData })
+      this.active = history.uuid
+      this.reloadRoute(history.uuid)
+      return res
     },
 
     updateHistory(uuid: number, edit: Partial<Chat.History>, isAdd?: boolean) {

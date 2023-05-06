@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-import { computed } from 'vue'
-import { NInput, NPopconfirm, NScrollbar } from 'naive-ui'
+import { computed, ref } from 'vue'
+import { NInput, NButton, NPopconfirm, NScrollbar } from 'naive-ui'
 import { SvgIcon } from '@/components/common'
 import { useAppStore, useChatStore } from '@/store'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
@@ -10,6 +10,7 @@ const { isMobile } = useBasicLayout()
 
 const appStore = useAppStore()
 const chatStore = useChatStore()
+const submitLoading = ref(false)
 
 const dataSources = computed(() => chatStore.history)
 
@@ -30,9 +31,11 @@ function handleEdit({ uuid }: Chat.History, isEdit: boolean, event?: MouseEvent)
   chatStore.updateHistory(uuid, { isEdit })
 }
 
-function handleDelete(index: number, event?: MouseEvent | TouchEvent) {
+async function handleDelete(index: number, event?: MouseEvent | TouchEvent) {
+  submitLoading.value = true;
   event?.stopPropagation()
-  chatStore.deleteHistory(index)
+  await chatStore.deleteHistory(index)
+  submitLoading.value = false;
   if (isMobile.value)
     appStore.setSiderCollapsed(true)
 }
@@ -89,8 +92,9 @@ function isActive(uuid: number) {
                 </button>
                 <NPopconfirm placement="bottom" @positive-click="handleDeleteDebounce(index, $event)">
                   <template #trigger>
-                    <button class="p-1">
-                      <SvgIcon icon="ri:delete-bin-line" />
+                    <button class="p-1" :loading="submitLoading">
+                      <SvgIcon icon="eos-icons:loading" v-if="submitLoading" />
+                      <SvgIcon icon="ri:delete-bin-line" v-else />
                     </button>
                   </template>
                   {{ $t('chat.deleteHistoryConfirm') }}
