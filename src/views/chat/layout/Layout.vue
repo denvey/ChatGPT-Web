@@ -14,7 +14,7 @@ const chatStore = useChatStore()
 const authStore = useAuthStore()
 const route = useRoute()
 
-router.replace({ name: 'Chat', params: { uuid: chatStore.active }, query: route.query })
+// router.replace({ name: 'Chat', params: { uuid: chatStore.active }, query: route.query })
 
 const { isMobile } = useBasicLayout()
 

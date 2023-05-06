@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getToken, setToken } from './helper' // removeToken,
+import { getToken, setToken, removeToken } from './helper' // removeToken,
 import { store, useUserStore } from '@/store'
 import { fetchSession } from '@/api'
 

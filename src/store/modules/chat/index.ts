@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { getLocalState, setLocalState } from './helper'
 import { router } from '@/router'
-import { addChat } from '@/api'
+import { addChat, delChat } from '@/api'
 
 export const useChatStore = defineStore('chat-store', {
   state: (): Chat.ChatState => getLocalState(),
@@ -75,9 +75,13 @@ export const useChatStore = defineStore('chat-store', {
     },
 
     async deleteHistory(index: number) {
+      const chatId = this.history[index].uuid;
+      const res =  await delChat(chatId);
+      if (res.data.data !== 1) {
+        return
+      }
       this.history.splice(index, 1)
       this.chat.splice(index, 1)
-
       if (this.history.length === 0) {
         this.active = null
         this.reloadRoute()
@@ -141,16 +145,20 @@ export const useChatStore = defineStore('chat-store', {
       }
 
       const index = this.chat.findIndex(item => item.uuid === uuid)
-      if (index !== -1) {
+      if (index === -1) {
+        this.chat.push({
+          uuid,
+          data: [chat]
+        })
+      } else {
         this.chat[index].data.push(chat);
-        const historyIndex = this.history.findIndex(item => item.uuid === uuid);
-        if (history) {
-          if (this.history[historyIndex]?.title === '新会话')
-            this.history[historyIndex].title = chat.text
-        }
-        
-        this.recordState()
       }
+      const historyIndex = this.history.findIndex(item => item.uuid === uuid);
+      if (historyIndex !== -1) {
+        if (this.history[historyIndex]?.title === '新会话')
+          this.history[historyIndex].title = chat.text
+      }
+      this.recordState()
     },
 
     updateChatByUuid(uuid: number, index: number, chat: Chat.Chat) {

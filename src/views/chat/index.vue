@@ -62,7 +62,6 @@ if (promptStore) {
 }
 
 if (promptId) {
-  // const promptValue = promptStore.getPromptById(Number(promptId));
   prompt.value = promptStore.getPromptById(Number(promptId))?.value ?? null;
   handleSubmit();
 }
@@ -498,7 +497,8 @@ onMounted(() => {
     },
     pageSize: 100,
   }).then(res => {
-    if (res.data.data?.length <= 0) {
+    if (res.data.status === 110002 || res.data?.data?.length <= 0) {
+      return
     }
     const data = res.data.data.map((item: any, index: number) => {
       return {

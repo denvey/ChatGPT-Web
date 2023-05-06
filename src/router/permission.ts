@@ -3,7 +3,11 @@ import { useAuthStoreWithout } from '@/store/modules/auth'
 
 export function setupPageGuard(router: Router) {
   router.beforeEach(async (to, from, next) => {
+    const { token } = to.query as any
     const authStore = useAuthStoreWithout()
+    if (token) {
+      authStore.setToken(token);
+    }
     if (!authStore.session) {
       try {
         const data = await authStore.getSession()

@@ -1,14 +1,14 @@
 import { ss } from '@/utils/storage'
 
-const LOCAL_NAME = 'LOGIN_STATUS_TOKEN1'
+const LOCAL_NAME = 'LOGIN_STATUS_TOKEN'
 
 export function getToken() {
-  // return ss.get(LOCAL_NAME)
-  return window.localStorage.getItem('LOGIN_STATUS_TOKEN') || undefined
+  return ss.get(LOCAL_NAME, 1)
+  // return window.localStorage.getItem('LOGIN_STATUS_TOKEN') || undefined
 }
 
 export function setToken(token: string) {
-  return ss.set(LOCAL_NAME, token)
+  return ss.set(LOCAL_NAME, token, 1)
 }
 
 export function removeToken() {

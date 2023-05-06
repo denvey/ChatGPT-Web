@@ -87,3 +87,15 @@ export function addChat(data: any) {
     data
   })
 }
+
+// https://admin.qqshsh.com/api/chats:destroy?filterByTk=109
+
+export function delChat(id: number) {
+  return axios({
+    url: `/proxy/chats:destroy`,
+    method: 'POST',
+    params: {
+      filterByTk: id
+    }
+  })
+}
