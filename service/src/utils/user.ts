@@ -38,14 +38,13 @@ export async function updateChats (data: {
   content?: string,
   status?: number,
 }) {
-  const url = `${ADMIN_API}/api/chats/${data.id}`;
-  const res = await axios(url);
+  const res = await axios(`${ADMIN_API}/api/chats:get?filterByTk=${data.id}&appends%5B%5D=createdBy&appends%5B%5D=updatedBy`);
   if (res.data.data.title !== '新会话') {
     delete data.title;
   } 
   return axios({
-    url: url,
-    method: 'PUT',
+    url: `${ADMIN_API}/api/chats:update?filterByTk=${data.id}`,
+    method: 'POST',
     data,
   })
 }
