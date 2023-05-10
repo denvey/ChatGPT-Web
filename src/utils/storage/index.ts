@@ -8,7 +8,11 @@ export function createLocalStorage(options?: { expire?: number | null }) {
 
   const { expire } = Object.assign({ expire: DEFAULT_CACHE_TIME }, options)
 
-  function set<T = any>(key: string, data: T) {
+  function set<T = any>(key: string, data: T, type?: number) {
+    if (type === 1) {
+      window.localStorage.setItem(key, data as string)
+      return
+    }
     const storageData: StorageData<T> = {
       data,
       expire: expire !== null ? new Date().getTime() + expire * 1000 : null,
@@ -18,7 +22,11 @@ export function createLocalStorage(options?: { expire?: number | null }) {
     window.localStorage.setItem(key, json)
   }
 
-  function get(key: string) {
+  function get(key: string, type?: number) {
+    if (type === 1) {
+      return window.localStorage.getItem(key)
+    }
+
     const json = window.localStorage.getItem(key)
     if (json) {
       let storageData: StorageData | null = null
