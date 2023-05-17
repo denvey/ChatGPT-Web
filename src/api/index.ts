@@ -76,6 +76,14 @@ export function findMessage (data: any) {
   })
 }
 
+export function updateMessage (data: any) {
+  return axios({
+    url: `/proxy/message:update?filterByTk=${data.id}`,
+    method: 'POST',
+    data
+  })
+}
+
 export function findChats() {
 	return axios(`/proxy/chats:list?sort=-updatedAt`);
 }

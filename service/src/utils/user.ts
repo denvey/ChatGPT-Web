@@ -21,6 +21,7 @@ export function addMessage (data: {
   userId?: number,
   fromUid?: number,
   toUid?: number,
+  cid?: number,
   chat?: {
     id: number,
   }

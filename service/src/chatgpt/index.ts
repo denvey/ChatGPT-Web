@@ -124,6 +124,7 @@ async function chatReplyProcess(options: RequestOptions) {
       text: message,
       status: 1,
       userId: uid,
+      cid,
       chat: {
         id: cid,
       }
@@ -135,6 +136,7 @@ async function chatReplyProcess(options: RequestOptions) {
       status: 1,
       userId: uid,
       toUid: uid,
+      cid,
       chat: {
         id: cid,
       },

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { getLocalState, setLocalState } from './helper'
 import { router } from '@/router'
-import { addChat, delChat } from '@/api'
+import { addChat, delChat, updateMessage } from '@/api'
 
 export const useChatStore = defineStore('chat-store', {
   state: (): Chat.ChatState => getLocalState(),
@@ -60,9 +60,18 @@ export const useChatStore = defineStore('chat-store', {
       this.recordState()
     },
 
-    syncChat(uuid: number, chat: Chat.Chat) {
+    syncChat(uuid: number, chat: Chat.Chat[]) {
       const chatIndex = this.chat.findIndex(item => item.uuid === uuid)
-      if (chatIndex !== -1) {
+      if (chat.length === 0) { // chat长度为0时仅做这个操作，为了把本地数据同步上来
+        if (this.chat[chatIndex].data.length > 0) {
+          this.chat[chatIndex].data.forEach(item => {
+            updateMessage({
+              id: item.id,
+              cid: uuid,
+            });
+          })
+        }
+      } else if (chatIndex !== -1) {
         this.chat[chatIndex].data = chat as any
         this.recordState()
       } else {

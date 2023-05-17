@@ -494,7 +494,7 @@ onMounted(() => {
     },
     pageSize: 100,
   }).then(res => {
-    if (res.data.status === 110002 || res.data?.data?.length <= 0) {
+    if (res.data.status === 110002) { // || res.data?.data?.length <= 0
       return
     }
     const data = res.data.data.map((item: any, index: number) => {
