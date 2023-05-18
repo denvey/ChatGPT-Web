@@ -109,26 +109,15 @@ async function chatReplyProcess(options: RequestOptions) {
 
     // 更新 会话id 内容
     if (cid) {
-      updateChats({
-        id: cid,
-        title: message,
-        content: response.text.slice(0, 30).replace(/\r|\n/g,"")
-      })
+      try {
+        updateChats({
+          id: cid,
+          title: message.replace(/(\r|\n).*/g,""),
+          content: response.text.slice(0, 30).replace(/\r|\n/g,"")
+        })
+      } catch {}
     }
   
-    // 保存问题
-    // 等待先把问题写成功后再答案保证顺序
-    await addMessage({
-      inversion: 1,
-      fromUid: uid,
-      text: message,
-      status: 1,
-      userId: uid,
-      cid,
-      chat: {
-        id: cid,
-      }
-    })
     // 保存答案
     addMessage({
       inversion: lastContext != null ? 1: 0,

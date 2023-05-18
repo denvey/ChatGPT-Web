@@ -25,6 +25,8 @@ export function fetchChatAPIProcess<T = any>(
     prompt: string,
 		cid?: number,
     uid?: number,
+		network?: boolean,
+    regenerate?: boolean,
     options?: { conversationId?: string; parentMessageId?: string }
     signal?: GenericAbortSignal
     onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void },
@@ -37,6 +39,7 @@ export function fetchChatAPIProcess<T = any>(
     options: params.options,
     cid: params.cid,
     uid: params.uid,
+    network: params.network,
   }
 
   if (authStore.isChatGPTAPI) {
@@ -84,8 +87,10 @@ export function updateMessage (data: any) {
   })
 }
 
-export function findChats() {
-	return axios(`/proxy/chats:list?sort=-updatedAt`);
+export function findChats(params: { page: number, pageSize?: number}) {
+	return axios(`/proxy/chats:list?sort=-updatedAt`, {
+    params
+  });
 }
 
 export function addChat(data: any) {

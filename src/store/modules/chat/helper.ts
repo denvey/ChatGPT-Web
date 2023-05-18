@@ -7,6 +7,7 @@ export function defaultState(): Chat.ChatState {
   return {
     active: null,
     usingContext: true,
+    usingNetwork: false,
     history: [],
     chat: [],
   }

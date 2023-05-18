@@ -5,8 +5,9 @@ import type { ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
 import { auth } from './middleware/auth'
 import { limiter } from './middleware/limiter'
-import { isNotEmptyString } from './utils/is'
-import { userInfo, updateIntegral, proxyChat } from './utils/user'
+import { textReplaceUrl } from './utils'
+import { addMessage, userInfo, updateIntegral, proxyChat } from './utils/user'
+import { search } from './search';
 
 // const prisma = new prismaClint.PrismaClient()
 const app = express()
@@ -27,6 +28,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   let isError = false;
   const authoriZation = req.headers['authorization'];
   const user: any = await userInfo(authoriZation);
+  let searchData = [];
   
   try {
     if (user.status === 110002) {
@@ -45,16 +47,53 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
         status:'Fail'
       }
     }
-    const { prompt, options = {}, systemMessage, temperature, top_p, cid } = req.body as RequestProps
+
+    let { prompt, options = {}, systemMessage, temperature, top_p, cid, network, regenerate } = req.body as RequestProps
+
+    const uid = user.data.uid;
+    
+    // 保存问题，重新生成则不保存
+    if (!regenerate) {
+      addMessage({
+        inversion: 1,
+        fromUid: uid,
+        text: prompt,
+        status: 1,
+        userId: uid,
+        cid,
+        chat: {
+          id: cid,
+        }
+      })
+    }
+
+    // 是否启用搜索
+    if (network) {
+      const { searchPrompt , searchData: _searchData } = await search(prompt) as any;
+      prompt += searchPrompt;
+      searchData = _searchData;
+    }
+    
     let firstChunk = true
     await chatReplyProcess({
       message: prompt,
       cid,
-      uid: user.data.uid,
+      uid: uid,
       lastContext: options,
       process: (chat: ChatMessage) => {
+        if (network) {
+          chat.text = textReplaceUrl(chat.text, searchData);
+        } 
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
         firstChunk = false
+        // if (firstChunk) {
+        //   res.write(`${JSON.stringify(chat)}t1h1i4s5i1s4a1s9i1l9l8y1s0plit`)
+        //   firstChunk = false
+        // } else if (chatLength !== chat.text.length) {
+        //   newChatLength = chat.text.length
+        //   res.write(chat.text.substring(chatLength, newChatLength))
+        //   chatLength = newChatLength
+        // }
       },
       systemMessage,
       temperature,
@@ -65,6 +104,9 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
     isError = true
     if (error.type !==1 && user.data?.is_money_level <= 0) {
       error.message = '本次不扣除积分\n' + error.message
+    }
+    if (error?.code === 'InvalidParameterValue') {
+      error.message = '请求参数错误\n' + error.message
     }
     res.write(JSON.stringify(error))
   }

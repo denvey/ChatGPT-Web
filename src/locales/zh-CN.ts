@@ -43,6 +43,8 @@ export default {
     usingContext: '上下文模式',
     turnOnContext: '当前模式下, 发送消息会携带之前的聊天记录',
     turnOffContext: '当前模式下, 发送消息不会携带之前的聊天记录',
+    turnOnNetwork: '打开联网能力，响应速度会下降',
+    turnOffNetwork: '关闭联网能力',
     deleteMessage: '删除消息',
     deleteMessageConfirm: '是否删除此消息?',
     deleteHistoryConfirm: '确定删除此记录?',

@@ -38,27 +38,13 @@ const getContainerClass = computed(() => {
   ]
 })
 
-onBeforeMount(() => {
-  findChats().then(res => {
-    if (res.data.data?.length <=0 ) {
-      chatStore.syncHistory([]);
-      return;
-    }
-    
-    const data = res.data.data.map((item: any) => {
-      return {
-        uuid: item.id,
-        isEdit: false,
-        title: item.title,
-      }
-    })
-    if (data.find((item: any) => item.uuid === uuid)) {
-      chatStore.setActive(uuid)
-    } else if (data[0]?.uuid) {
-      chatStore.setActive(data[0].uuid)
-    }
-    chatStore.syncHistory(data)
-  })
+onBeforeMount(async () => {
+  const data = await chatStore.loadChats();
+  if (data.find((item: any) => item.uuid === uuid)) {
+    chatStore.setActive(uuid)
+  } else if (data[0]?.uuid) {
+    chatStore.setActive(data[0].uuid)
+  }
 })
 </script>
 

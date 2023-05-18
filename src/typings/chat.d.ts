@@ -5,6 +5,7 @@ declare namespace Chat {
 		text: string
 		id?: number,
 		inversion?: boolean
+		network?: boolean;
 		error?: boolean
 		loading?: boolean
 		conversationOptions?: ConversationRequest | null
@@ -15,11 +16,15 @@ declare namespace Chat {
 		title: string
 		isEdit: boolean
 		uuid: number
+		id?: number
 	}
 
 	interface ChatState {
 		active: number | null
+		// 是否启用上下文联系
 		usingContext: boolean;
+		// 是否联网
+		usingNetwork: boolean;
 		history: History[]
 		chat: { uuid: number; data: Chat[] }[]
 	}
@@ -27,6 +32,7 @@ declare namespace Chat {
 	interface ConversationRequest {
 		conversationId?: string
 		parentMessageId?: string
+		usingNetwork?: boolean
 	}
 
 	interface ConversationResponse {
@@ -41,8 +47,8 @@ declare namespace Chat {
 		}
 		id: string
 		uid: string
-		parentMessageId: string
 		role: string
 		text: string
+		network?: boolean,
 	}
 }

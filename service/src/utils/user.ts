@@ -35,12 +35,12 @@ export function addMessage (data: {
 
 export async function updateChats (data: {
   id: number,
-  title: string,
+  title?: string,
   content?: string,
   status?: number,
 }) {
   const res = await axios(`${ADMIN_API}/api/chats:get?filterByTk=${data.id}&appends%5B%5D=createdBy&appends%5B%5D=updatedBy`);
-  if (res.data.data.title !== '新会话') {
+  if (res.data.data?.title !== '新会话') {
     delete data.title;
   } 
   return axios({

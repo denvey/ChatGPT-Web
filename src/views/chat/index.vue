@@ -3,13 +3,14 @@ import type { Ref } from 'vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { NAutoComplete, NButton, NInput, useDialog, useMessage } from 'naive-ui'
+import { NAutoComplete, NButton, NInput, NCard, useDialog, useMessage } from 'naive-ui'
 import html2canvas from 'html2canvas'
 import dayjs from 'dayjs'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
 import { useChat } from './hooks/useChat'
 import { useUsingContext } from './hooks/useUsingContext'
+import { useUsingNetwork } from './hooks/useUsingNetwork'
 import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
@@ -34,6 +35,7 @@ const { isMobile } = useBasicLayout()
 const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
 const { scrollRef, scrollToBottom, scrollToBottomIfAtBottom } = useScroll()
 const { usingContext, toggleUsingContext } = useUsingContext()
+const { usingNetwork, toggleUsingNetwork } = useUsingNetwork()
 
 const { uuid: uuidString } = route.params as { uuid: string }
 const { wx, uid, promptId } = route.query as any
@@ -107,7 +109,7 @@ async function onConversation() {
   const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
 
   if (lastContext && usingContext.value)
-    options = { ...lastContext }
+    options = { ...lastContext  }
 
   addChat(
     +uuid,
@@ -116,6 +118,7 @@ async function onConversation() {
       text: '',
       loading: true,
       inversion: false,
+      network: usingNetwork.value,
       error: false,
       conversationOptions: null,
       requestOptions: { prompt: message, options: { ...options } },
@@ -131,6 +134,7 @@ async function onConversation() {
         options,
         cid: uuid,
         uid,
+        network: usingNetwork.value,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -149,6 +153,7 @@ async function onConversation() {
                 dateTime: new Date().toLocaleString(),
                 text: lastText + (data.text ?? ''),
                 inversion: false,
+                network: usingNetwork.value,
                 error: false,
                 loading: true,
                 conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
@@ -212,6 +217,7 @@ async function onConversation() {
         dateTime: new Date().toLocaleString(),
         text: errorMessage,
         inversion: false,
+        network: usingNetwork.value,
         error: true,
         loading: false,
         conversationOptions: null,
@@ -237,7 +243,7 @@ async function onRegenerate(index: number) {
 
   let options: Chat.ConversationRequest = {}
 
-  if (requestOptions.options)
+  if (requestOptions?.options)
     options = { ...requestOptions.options }
 
   loading.value = true
@@ -249,6 +255,7 @@ async function onRegenerate(index: number) {
       dateTime: new Date().toLocaleString(),
       text: '',
       inversion: false,
+      network: usingNetwork.value,
       error: false,
       loading: true,
       conversationOptions: null,
@@ -264,6 +271,8 @@ async function onRegenerate(index: number) {
         options,
         cid: uuid,
         uid,
+        network: usingNetwork.value,
+        regenerate: true,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -282,6 +291,7 @@ async function onRegenerate(index: number) {
                 dateTime: new Date().toLocaleString(),
                 text: lastText + (data.text ?? ''),
                 inversion: false,
+                network: usingNetwork.value,
                 error: false,
                 loading: true,
                 conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
@@ -326,6 +336,7 @@ async function onRegenerate(index: number) {
         dateTime: new Date().toLocaleString(),
         text: errorMessage,
         inversion: false,
+        network: usingNetwork.value,
         error: true,
         loading: false,
         conversationOptions: null,
@@ -538,8 +549,18 @@ onUnmounted(() => {
           <template v-if="!dataSources.length">
             <div class="flex items-center justify-center mt-4 text-center text-neutral-300">
               <SvgIcon icon="ri:bubble-chart-fill" class="mr-2 text-3xl" />
-              <span>Aha~</span>
             </div>
+            <!-- <div class="flex mt-5 gap-5">
+              <NCard title="📖 新手教程" embedded :bordered="false">
+                让你用的更好
+              </NCard>
+              <NCard title="新手教程" embedded :bordered="false">
+                让你用的更好
+              </NCard>
+              <NCard title="新手教程" embedded :bordered="false">
+                让你用的更好
+              </NCard>
+            </div> -->
           </template>
           <template v-else>
             <div>
@@ -570,6 +591,11 @@ onUnmounted(() => {
     <footer :class="footerClass">
       <div class="w-full max-w-screen-xl m-auto">
         <div class="flex items-center justify-between space-x-2">
+          <HoverButton @click="toggleUsingNetwork">
+            <span class="text-xl" :class="{ 'text-[#4b9e5f]': usingNetwork, 'text-[#4f555e]': !usingNetwork }">
+              <SvgIcon :icon="usingNetwork ? 'tabler:network' : 'tabler:network-off'" />
+            </span>
+          </HoverButton>
           <HoverButton @click="handleClear" v-if="!wx">
             <span class="text-xl text-[#4f555e] dark:text-white">
               <SvgIcon icon="ri:delete-bin-line" />

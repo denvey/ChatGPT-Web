@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { getLocalState, setLocalState } from './helper'
 import { router } from '@/router'
-import { addChat, delChat, updateMessage } from '@/api'
+import { addChat, delChat, updateMessage, findChats } from '@/api'
+
+let _page = 1;
 
 export const useChatStore = defineStore('chat-store', {
   state: (): Chat.ChatState => getLocalState(),
@@ -35,6 +37,11 @@ export const useChatStore = defineStore('chat-store', {
       this.recordState()
     },
 
+    setUsingNetwork(context: boolean) {
+      this.usingNetwork = context;
+      this.recordState();
+    },
+
     async addHistory(history: Chat.History, chatData: Chat.Chat[] = [], reload: Boolean = true) {
       const res = await addChat(history);
       history.uuid = res.data.data.id;
@@ -53,6 +60,41 @@ export const useChatStore = defineStore('chat-store', {
       } else if (isAdd) {
         this.history.push(edit as any);
       }
+    },
+
+    async loadChats(page?: number, pageSize = 20) {
+      _page = page ?? _page
+      const res = await findChats({ 
+        page: _page,
+        pageSize
+      });
+
+      if (res.data.status === 110002) {
+        return []
+      }
+      
+      if (res.data.data?.length <=0 ) {
+        // this.history = []
+        return [];
+      }
+
+      const data = res.data.data.map((item: any) => {
+        return {
+          uuid: item.id,
+          isEdit: false,
+          title: item.title,
+          content: item.content,
+        }
+      })
+      
+      if (_page === 1) {
+        this.history = data
+      } else {
+        this.history = this.history.concat(data)
+      }
+      _page = _page + 1;
+      this.recordState()
+      return data
     },
 
     syncHistory(history: Chat.History[]) {

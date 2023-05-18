@@ -8,11 +8,14 @@ export interface RequestProps {
   systemMessage: string
   temperature?: number
   top_p?: number
+  network?: boolean
+  regenerate?: boolean
 }
 
 export interface ChatContext {
   conversationId?: string
   parentMessageId?: string
+  network?: boolean
 }
 
 export interface ChatGPTUnofficialProxyAPIOptions {

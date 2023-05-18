@@ -20,3 +20,12 @@ export function sendResponse<T>(options: SendResponseOptions<T>) {
     status: options.type,
   })
 }
+
+export function textReplaceUrl(text, arr) {
+  const regex = /\[\[(\d)\]\(u(\d)\)\]/g;
+  const replacedText = text.replace(regex, (match, p1, p2) => {
+    const url = arr[p2].href;
+    return `[[${p1}](${url})]`;
+  });
+  return replacedText;
+}
